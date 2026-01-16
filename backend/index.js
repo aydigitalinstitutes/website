@@ -128,7 +128,10 @@ app.post('/api/login', async (req, res) => {
       'email': 'anshulyadav32@icloud.com',
       'phone': '+91 98765 43210',
       'whatsapp': '+91 98765 43210',
-      'address': 'Ay Digital Institute, Main Road, City'
+      'address': 'Ay Digital Institute, Main Road, City',
+      'brand_name': 'AY Digital Institute',
+      'brand_logo': '', // URL or base64
+      'brand_display': 'both' // 'name', 'logo', 'both'
     };
 
     for (const [key, value] of Object.entries(defaultSettings)) {

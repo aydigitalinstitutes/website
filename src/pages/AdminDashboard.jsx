@@ -10,7 +10,10 @@ const AdminDashboard = () => {
     email: '',
     phone: '',
     whatsapp: '',
-    address: ''
+    address: '',
+    brand_name: 'AY Digital Institute',
+    brand_logo: '',
+    brand_display: 'both'
   });
   const [message, setMessage] = useState('');
 
@@ -39,6 +42,25 @@ const AdminDashboard = () => {
       ...settings,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 500000) { // 500KB limit
+        setMessage('Error: Image size too large (max 500KB)');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettings({
+          ...settings,
+          brand_logo: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -84,6 +106,69 @@ const AdminDashboard = () => {
           {message && <p className={message.includes('Error') ? 'error-message' : 'status-message'}>{message}</p>}
 
           <form onSubmit={handleSubmit} className="profile-form">
+            <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#f9fafb', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginBottom: '1rem', marginTop: 0 }}>Branding & Logo</h4>
+              
+              <div className="form-group">
+                <label>Brand Name</label>
+                <input
+                  type="text"
+                  name="brand_name"
+                  value={settings.brand_name || ''}
+                  onChange={handleChange}
+                  placeholder="Institute Name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Upload Logo (Max 500KB)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  style={{ padding: '0.5rem' }}
+                />
+              </div>
+
+              {settings.brand_logo && (
+                <div style={{ margin: '1rem 0', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>Logo Preview:</p>
+                  <img 
+                    src={settings.brand_logo} 
+                    alt="Logo Preview" 
+                    style={{ maxHeight: '60px', maxWidth: '100%', objectFit: 'contain' }} 
+                  />
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Display Mode</label>
+                <select
+                  name="brand_display"
+                  value={settings.brand_display || 'both'}
+                  onChange={handleChange}
+                  style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                >
+                  <option value="name">Brand Name Only</option>
+                  <option value="logo">Logo Only</option>
+                  <option value="both">Both Name & Logo</option>
+                </select>
+              </div>
+
+              {/* Live Preview */}
+              <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px dashed #ccc', borderRadius: '0.5rem', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>Login Page Header Preview:</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                  {(settings.brand_display === 'logo' || settings.brand_display === 'both') && settings.brand_logo && (
+                     <img src={settings.brand_logo} alt="Logo" style={{ height: '40px' }} />
+                  )}
+                  {(settings.brand_display === 'name' || settings.brand_display === 'both') && (
+                     <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>{settings.brand_name}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="form-group">
               <label>Contact Email</label>
               <input

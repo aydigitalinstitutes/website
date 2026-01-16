@@ -9,6 +9,7 @@ import Enroll from './pages/Enroll';
 import About from './pages/About';
 import Courses from './pages/Courses';
 import Contact from './pages/Contact';
+import Footer from './components/Footer';
 import './App.css';
 
 // Separate the Home content into a component
@@ -157,9 +158,7 @@ function App() {
         </Routes>
       </main>
 
-      <footer className="site-footer">
-        <p>AY Digital Institute • Computer Education Center • {settings.email}</p>
-      </footer>
+      <Footer settings={settings} />
     </div>
   );
 }
