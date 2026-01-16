@@ -90,6 +90,53 @@ app.post('/api/login', async (req, res) => {
         phone VARCHAR(20)
       );
     `);
+
+    // Create Enrollments Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS enrollments (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        course VARCHAR(100) NOT NULL,
+        message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create Settings Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        key VARCHAR(50) UNIQUE NOT NULL,
+        value TEXT
+      );
+    `);
+
+    // Seed Admin User
+    const adminCheck = await pool.query("SELECT * FROM users WHERE role = 'admin'");
+    if (adminCheck.rows.length === 0) {
+      await pool.query(
+        "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
+        ['Administrator', 'admin@aydigital.com', 'admin123', 'admin']
+      );
+      console.log('Admin user created: admin@aydigital.com / admin123');
+    }
+
+    // Seed Default Settings
+    const defaultSettings = {
+      'email': 'anshulyadav32@icloud.com',
+      'phone': '+91 98765 43210',
+      'whatsapp': '+91 98765 43210',
+      'address': 'Ay Digital Institute, Main Road, City'
+    };
+
+    for (const [key, value] of Object.entries(defaultSettings)) {
+      await pool.query(
+        "INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING",
+        [key, value]
+      );
+    }
     
     // Add columns if they don't exist (migration for existing table)
     try {
@@ -180,6 +227,59 @@ app.post('/api/update-profile', async (req, res) => {
     } else {
       res.status(404).json({ success: false, error: 'User not found' });
     }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Enrollment Endpoint
+app.post('/api/enroll', async (req, res) => {
+  const { name, email, phone, course, message } = req.body;
+
+  if (!name || !email || !phone || !course) {
+    return res.status(400).json({ success: false, error: 'All required fields must be filled' });
+  }
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO enrollments (name, email, phone, course, message) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [name, email, phone, course, message || '']
+    );
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Get Site Settings
+app.get('/api/settings', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM site_settings');
+    const settings = {};
+    result.rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    res.json({ success: true, settings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Update Site Settings (Admin only - simplified check)
+app.post('/api/settings', async (req, res) => {
+  const { settings } = req.body; // Expect object { key: value }
+  
+  try {
+    for (const [key, value] of Object.entries(settings)) {
+      await pool.query(
+        'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+        [key, value]
+      );
+    }
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Server error' });

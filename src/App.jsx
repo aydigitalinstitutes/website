@@ -1,13 +1,15 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import Enroll from './pages/Enroll';
 import './App.css';
 
 // Separate the Home content into a component
-const Home = () => {
+const Home = ({ settings }) => {
   const [showContact, setShowContact] = useState(false);
 
   return (
@@ -25,9 +27,9 @@ const Home = () => {
             <a href="#courses" className="btn primary">
               View Courses
             </a>
-            <a href="#contact" className="btn secondary">
-              Enquire Now
-            </a>
+            <Link to="/enroll" className="btn secondary">
+              Enroll Now
+            </Link>
           </div>
         </div>
       </section>
@@ -105,8 +107,7 @@ const Home = () => {
           <div className="contact-board">
             <h3>AY Digital Institute</h3>
             <p>Computer Education Center</p>
-            <p>CCC | DCA | ADCA | MS Office</p>
-            <p>Internet & Digital Skills | Basic Computer Training</p>
+            <p>{settings.address || 'Loading Address...'}</p>
             <p className="tagline">Learn • Practice • Succeed</p>
           </div>
         </div>
@@ -116,7 +117,7 @@ const Home = () => {
         {showContact && (
           <div className="floating-options">
             <a
-              href="https://wa.me/your-number"
+              href={`https://wa.me/${settings.whatsapp?.replace(/[^0-9]/g, '')}`}
               className="btn whatsapp floating-btn option"
               target="_blank"
               rel="noreferrer"
@@ -125,13 +126,13 @@ const Home = () => {
               WA
             </a>
             <a
-              href="mailto:anshulyadav32@icloud.com"
+              href={`mailto:${settings.email}`}
               className="btn email floating-btn option"
               title="Email"
             >
               @
             </a>
-            <a href="tel:your-number" className="btn call floating-btn option" title="Call">
+            <a href={`tel:${settings.phone}`} className="btn call floating-btn option" title="Call">
               📞
             </a>
           </div>
@@ -151,6 +152,25 @@ const Home = () => {
 function App() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [settings, setSettings] = useState({
+    email: 'anshulyadav32@icloud.com',
+    phone: '',
+    whatsapp: '',
+    address: ''
+  });
+
+  // Fetch settings on mount
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || '/api';
+    fetch(`${API_URL}/settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setSettings(data.settings);
+        }
+      })
+      .catch(err => console.log('Using default settings'));
+  }, []);
 
   // Helper to scroll to section if on home page
   const scrollToSection = (id) => {
@@ -172,7 +192,13 @@ function App() {
           <Link to="/" onClick={() => scrollToSection('contact')}>Contact</Link>
           
           {user ? (
-            <Link to="/dashboard" className="btn secondary small">Dashboard</Link>
+            <>
+              {user.role === 'admin' ? (
+                <Link to="/admin" className="btn secondary small">Admin</Link>
+              ) : (
+                <Link to="/dashboard" className="btn secondary small">Dashboard</Link>
+              )}
+            </>
           ) : (
             <Link to="/login" className="btn secondary small">Login</Link>
           )}
@@ -181,15 +207,17 @@ function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home settings={settings} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/enroll" element={<Enroll />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </main>
 
       <footer className="site-footer">
-        <p>AY Digital Institute • Computer Education Center • Learn • Practice • Succeed</p>
+        <p>AY Digital Institute • Computer Education Center • {settings.email}</p>
       </footer>
     </div>
   );
