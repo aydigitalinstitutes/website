@@ -135,7 +135,13 @@ app.post('/api/login', async (req, res) => {
       'address': 'Ay Digital Institute, Main Road, City',
       'brand_name': 'AY Digital Institute',
       'brand_logo': '', // URL or base64
-      'brand_display': 'both' // 'name', 'logo', 'both'
+      'brand_display': 'both', // 'name', 'logo', 'both'
+      'menu_items': JSON.stringify([
+        { label: 'Home', path: '/' },
+        { label: 'About', path: '/about' },
+        { label: 'Courses', path: '/courses' },
+        { label: 'Contact', path: '/contact' }
+      ])
     };
 
     for (const [key, value] of Object.entries(defaultSettings)) {
@@ -286,9 +292,10 @@ app.post('/api/settings', async (req, res) => {
   
   try {
     for (const [key, value] of Object.entries(settings)) {
+      const valToStore = typeof value === 'object' ? JSON.stringify(value) : value;
       await pool.query(
         'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
-        [key, value]
+        [key, valToStore]
       );
     }
     res.json({ success: true });

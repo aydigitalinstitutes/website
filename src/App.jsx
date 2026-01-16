@@ -108,6 +108,7 @@ function App() {
     whatsapp: '',
     address: ''
   });
+  const [menuItems, setMenuItems] = useState([]);
 
   // Fetch settings on mount
   useEffect(() => {
@@ -117,22 +118,36 @@ function App() {
       .then(data => {
         if (data.success && data.settings) {
           setSettings(data.settings);
+          if (data.settings.menu_items) {
+            try {
+              setMenuItems(JSON.parse(data.settings.menu_items));
+            } catch (e) {
+              console.error('Failed to parse menu items');
+            }
+          }
         }
       })
       .catch(err => console.log('Using default settings'));
   }, []);
+
+  // Dynamic Nav Links
+  const navLinks = menuItems.length > 0 ? menuItems : [
+    { label: 'Home', path: '/' },
+    { label: 'About', path: '/about' },
+    { label: 'Courses', path: '/courses' },
+    { label: 'Contact', path: '/contact' }
+  ];
 
   return (
     <div className="site">
       {user && user.role === 'admin' && <AdminNavbar />}
       
       <header className="site-header">
-        <Link to="/" className="logo-text">AY Digital Institute</Link>
+        <Link to="/" className="logo-text">{settings.brand_name || 'AY Digital Institute'}</Link>
         <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/courses">Courses</Link>
-          <Link to="/contact">Contact</Link>
+          {navLinks.map((link, idx) => (
+            <Link key={idx} to={link.path}>{link.label}</Link>
+          ))}
           
           {user ? (
             <>
