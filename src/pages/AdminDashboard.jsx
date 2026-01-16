@@ -47,19 +47,22 @@ const AdminDashboard = () => {
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 500000) { // 500KB limit
-        setMessage('Error: Image size too large (max 500KB)');
+      if (file.size > 2000000) { // Increased limit to 2MB (backend now supports 10MB)
+        setMessage('Error: Image size too large (max 2MB)');
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSettings({
-          ...settings,
+        setSettings(prev => ({
+          ...prev,
           brand_logo: reader.result
-        });
+        }));
       };
       reader.readAsDataURL(file);
+      
+      // Clear input so same file can be selected again
+      e.target.value = '';
     }
   };
 
@@ -73,17 +76,23 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Update failed');
+      }
+
       const data = await response.json();
       
       if (data.success) {
         setMessage('Settings updated successfully!');
-        // Ideally trigger a refresh in App.jsx, but reload works for now
         setTimeout(() => window.location.reload(), 1500);
       } else {
         setMessage('Error updating settings');
       }
     } catch (err) {
-      setMessage('Network error');
+      console.error(err);
+      setMessage(err.message || 'Network error');
     }
   };
 

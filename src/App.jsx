@@ -11,6 +11,7 @@ import Courses from './pages/Courses';
 import Contact from './pages/Contact';
 import ForgotPassword from './pages/ForgotPassword';
 import Footer from './components/Footer';
+import AdminNavbar from './components/AdminNavbar';
 import './App.css';
 
 // Separate the Home content into a component
@@ -123,6 +124,8 @@ function App() {
 
   return (
     <div className="site">
+      {user && user.role === 'admin' && <AdminNavbar />}
+      
       <header className="site-header">
         <Link to="/" className="logo-text">AY Digital Institute</Link>
         <nav className="nav">
