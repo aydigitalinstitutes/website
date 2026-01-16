@@ -10,6 +10,7 @@ import About from './pages/About';
 import Courses from './pages/Courses';
 import Contact from './pages/Contact';
 import ForgotPassword from './pages/ForgotPassword';
+import Profile from './pages/Profile';
 import Footer from './components/Footer';
 import AdminNavbar from './components/AdminNavbar';
 import './App.css';
@@ -172,6 +173,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/enroll" element={<Enroll />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />

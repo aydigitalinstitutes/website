@@ -75,5 +75,52 @@ describe('API Endpoints', () => {
       const check = await request(app).get('/api/settings');
       expect(check.body.settings.brand_name).toBe('Test Institute');
     }, 10000);
+  }); // Close Site Settings describe block
+
+  describe('User Management', () => {
+    let newUserId;
+
+    it('should create a new user (admin action)', async () => {
+      const res = await request(app)
+        .post('/api/users/create')
+        .send({
+          name: 'New Student',
+          email: `student_${Date.now()}@test.com`,
+          password: 'password123',
+          role: 'student'
+        });
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      newUserId = res.body.user.id;
+    });
+
+    it('should list all users', async () => {
+      const res = await request(app).get('/api/users');
+      expect(res.statusCode).toBe(200);
+      expect(res.body.users.length).toBeGreaterThan(0);
+    });
+
+    it('should reset user password (admin action)', async () => {
+      const res = await request(app)
+        .post('/api/users/reset-password')
+        .send({ userId: newUserId, newPassword: 'newpassword123' });
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('should change own password (user action)', async () => {
+      const res = await request(app)
+        .post('/api/change-password')
+        .send({ 
+          userId: newUserId, 
+          oldPassword: 'newpassword123', 
+          newPassword: 'finalpassword123' 
+        });
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
   });
 });
