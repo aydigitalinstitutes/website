@@ -78,16 +78,20 @@ app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Ensure table structure is updated with address/phone
+    // Ensure table structure is updated with address/phone/otp/social
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100),
         email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(100) NOT NULL,
+        password VARCHAR(100),
         role VARCHAR(20) DEFAULT 'student',
         address TEXT,
-        phone VARCHAR(20)
+        phone VARCHAR(20),
+        otp VARCHAR(6),
+        otp_expires_at TIMESTAMP,
+        google_id VARCHAR(100),
+        github_id VARCHAR(100)
       );
     `);
 
@@ -145,6 +149,11 @@ app.post('/api/login', async (req, res) => {
     try {
       await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;');
       await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20);');
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS otp VARCHAR(6);');
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP;');
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(100);');
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS github_id VARCHAR(100);');
+      await pool.query('ALTER TABLE users ALTER COLUMN password DROP NOT NULL;'); // Password optional for social login
     } catch (e) {
       console.log('Columns likely exist or migration error:', e.message);
     }
@@ -283,6 +292,106 @@ app.post('/api/settings', async (req, res) => {
       );
     }
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// OTP Endpoints
+app.post('/api/otp/send', async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await pool.query(
+      'UPDATE users SET otp = $1, otp_expires_at = $2 WHERE email = $3',
+      [otp, expiry, email]
+    );
+
+    // In a real app, send via Email (Nodemailer)
+    console.log(`>>> OTP for ${email}: ${otp} <<<`);
+
+    res.json({ success: true, message: 'OTP sent to email (Check console for demo)' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+app.post('/api/otp/login', async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.otp || user.otp !== otp) {
+      return res.status(400).json({ success: false, error: 'Invalid OTP' });
+    }
+
+    if (new Date() > new Date(user.otp_expires_at)) {
+      return res.status(400).json({ success: false, error: 'OTP Expired' });
+    }
+
+    // Clear OTP
+    await pool.query('UPDATE users SET otp = NULL, otp_expires_at = NULL WHERE id = $1', [user.id]);
+
+    res.json({ 
+      success: true, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        address: user.address,
+        phone: user.phone
+      } 
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Forgot Password
+app.post('/api/forgot-password', async (req, res) => {
+  // Reusing the same OTP logic for simplicity
+  const { email } = req.body;
+  // Redirect to send OTP logic internally or duplicate
+  // For simplicity, client can just call /api/otp/send and then redirect to reset page
+  res.redirect(307, '/api/otp/send');
+});
+
+app.post('/api/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const user = result.rows[0];
+    if (user.otp !== otp) return res.status(400).json({ success: false, error: 'Invalid OTP' });
+
+    await pool.query(
+      'UPDATE users SET password = $1, otp = NULL, otp_expires_at = NULL WHERE id = $2',
+      [newPassword, user.id]
+    );
+
+    res.json({ success: true, message: 'Password reset successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Server error' });

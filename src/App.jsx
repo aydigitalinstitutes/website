@@ -9,6 +9,7 @@ import Enroll from './pages/Enroll';
 import About from './pages/About';
 import Courses from './pages/Courses';
 import Contact from './pages/Contact';
+import ForgotPassword from './pages/ForgotPassword';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -152,6 +153,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/enroll" element={<Enroll />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
