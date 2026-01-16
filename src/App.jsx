@@ -1,11 +1,15 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useState } from 'react';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import './App.css';
 
 // Separate the Home content into a component
 const Home = () => {
+  const [showContact, setShowContact] = useState(false);
+
   return (
     <>
       <section className="hero">
@@ -108,24 +112,37 @@ const Home = () => {
         </div>
       </section>
       
-      <div className="floating-contact">
-        <a
-          href="https://wa.me/your-number"
-          className="btn whatsapp floating-btn"
-          target="_blank"
-          rel="noreferrer"
+      <div className={`floating-contact-container ${showContact ? 'active' : ''}`}>
+        {showContact && (
+          <div className="floating-options">
+            <a
+              href="https://wa.me/your-number"
+              className="btn whatsapp floating-btn option"
+              target="_blank"
+              rel="noreferrer"
+              title="WhatsApp"
+            >
+              WA
+            </a>
+            <a
+              href="mailto:anshulyadav32@icloud.com"
+              className="btn email floating-btn option"
+              title="Email"
+            >
+              @
+            </a>
+            <a href="tel:your-number" className="btn call floating-btn option" title="Call">
+              📞
+            </a>
+          </div>
+        )}
+        
+        <button 
+          className="btn primary floating-btn main-toggle"
+          onClick={() => setShowContact(!showContact)}
         >
-          WhatsApp
-        </a>
-        <a
-          href="mailto:anshulyadav32@icloud.com"
-          className="btn email floating-btn"
-        >
-          Email
-        </a>
-        <a href="tel:your-number" className="btn call floating-btn">
-          Call
-        </a>
+          {showContact ? '✕' : '💬'}
+        </button>
       </div>
     </>
   );
@@ -166,6 +183,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>

@@ -458,14 +458,21 @@ ul {
 }
 
 /* Floating Contact Buttons */
-.floating-contact {
+.floating-contact-container {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column-reverse; /* Main button at bottom */
+  align-items: center;
+  gap: 1rem;
+}
+
+.floating-options {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  z-index: 1000;
 }
 
 .floating-btn {
@@ -476,29 +483,49 @@ ul {
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem; /* Text might be small, icons preferred usually */
+  font-size: 1.2rem;
   font-weight: bold;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: float-in 0.5s ease-out backwards;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.floating-btn.main-toggle {
+  background-color: var(--primary);
+  font-size: 1.5rem;
+  z-index: 1001;
+}
+
+.floating-btn.option {
+  width: 50px;
+  height: 50px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  animation: popIn 0.3s forwards;
+}
+
+@keyframes popIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .floating-btn:hover {
   transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
 
 .btn.whatsapp { background-color: #25D366; }
 .btn.email { background-color: #EA4335; }
 .btn.call { background-color: #3B82F6; }
 
-.floating-btn:nth-child(1) { animation-delay: 0.1s; }
-.floating-btn:nth-child(2) { animation-delay: 0.2s; }
-.floating-btn:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes float-in {
-  from { transform: translateY(50px) scale(0); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
-}
+.floating-btn.option:nth-child(1) { animation-delay: 0.2s; }
+.floating-btn.option:nth-child(2) { animation-delay: 0.1s; }
+.floating-btn.option:nth-child(3) { animation-delay: 0s; }
 
 /* Responsive */
 @media (max-width: 768px) {

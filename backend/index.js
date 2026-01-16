@@ -33,6 +33,47 @@ pool.connect((err, client, release) => {
 // API Routes
 
 // Login Endpoint
+app.post('/api/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, error: 'All fields are required' });
+  }
+
+  try {
+    // Check if user exists
+    const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    if (userCheck.rows.length > 0) {
+      return res.status(400).json({ success: false, error: 'Email already registered' });
+    }
+
+    // Insert new user
+    const newUser = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, email, password, 'student']
+    );
+
+    const user = newUser.rows[0];
+    res.json({ 
+      success: true, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        address: user.address,
+        phone: user.phone
+      } 
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Login Endpoint
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 

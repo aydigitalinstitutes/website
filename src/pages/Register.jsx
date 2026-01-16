@@ -1,20 +1,26 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import '../App.css'; // Using existing styles
+import '../App.css';
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+    }
     
-    const result = await login(email, password);
+    const result = await register(name, email, password);
     if (result.success) {
       navigate('/dashboard');
     } else {
@@ -25,12 +31,24 @@ const Login = () => {
   return (
     <div className="login-page">
       <div className="login-container">
-        <h2>Student Login</h2>
-        <p>Access your dashboard and course materials</p>
+        <h2>Create Account</h2>
+        <p>Join AY Digital Institute today</p>
         
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              required
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
@@ -56,11 +74,11 @@ const Login = () => {
           </div>
           
           <button type="submit" className="btn primary full-width">
-            Sign In
+            Register
           </button>
-          
+
           <p style={{ marginTop: '1.5rem', marginBottom: 0 }}>
-            Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Register</Link>
+            Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Login</Link>
           </p>
         </form>
       </div>
@@ -68,4 +86,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
