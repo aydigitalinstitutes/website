@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../App.css';
 
 const Enroll = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +16,16 @@ const Enroll = () => {
     message: ''
   });
   const [status, setStatus] = useState({ type: '', msg: '' });
+
+  // Handle pre-selection from Courses page
+  useEffect(() => {
+    if (location.state && location.state.selectedCourse) {
+      setFormData(prev => ({
+        ...prev,
+        course: location.state.selectedCourse
+      }));
+    }
+  }, [location]);
 
   // Pre-fill if logged in
   useEffect(() => {
