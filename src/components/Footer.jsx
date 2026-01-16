@@ -6,7 +6,7 @@ const Footer = ({ settings }) => {
     <footer className="site-footer">
       <div className="footer-content section-inner">
         <div className="footer-section brand">
-          <h3>AY Digital Institute</h3>
+          <h3>{settings.brand_name || 'AY Digital Institute'}</h3>
           <p>
             Empowering students with practical digital skills and computer education. 
             Building the future, one byte at a time.

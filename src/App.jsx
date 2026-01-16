@@ -146,7 +146,14 @@ function App() {
       {user && user.role === 'admin' && <AdminNavbar />}
       
       <header className="site-header">
-        <Link to="/" className="logo-text">{settings.brand_name || 'AY Digital Institute'}</Link>
+        <Link to="/" className="logo-container">
+          {(settings.brand_display === 'logo' || settings.brand_display === 'both') && settings.brand_logo && (
+             <img src={settings.brand_logo} alt="Logo" className="site-logo" />
+          )}
+          {(settings.brand_display === 'name' || settings.brand_display === 'both') && (
+             <span className="logo-text">{settings.brand_name || 'AY Digital Institute'}</span>
+          )}
+        </Link>
         <nav className="nav">
           {navLinks.map((link, idx) => (
             <Link key={idx} to={link.path}>{link.label}</Link>
