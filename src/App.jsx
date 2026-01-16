@@ -132,12 +132,14 @@ function App() {
   }, []);
 
   // Dynamic Nav Links
-  const navLinks = menuItems.length > 0 ? menuItems : [
-    { label: 'Home', path: '/' },
-    { label: 'About', path: '/about' },
-    { label: 'Courses', path: '/courses' },
-    { label: 'Contact', path: '/contact' }
-  ];
+  const navLinks = menuItems.length > 0 
+    ? menuItems.filter(item => item.visible !== false) // Only show visible items
+    : [
+        { label: 'Home', path: '/' },
+        { label: 'About', path: '/about' },
+        { label: 'Courses', path: '/courses' },
+        { label: 'Contact', path: '/contact' }
+      ];
 
   return (
     <div className="site">

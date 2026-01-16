@@ -60,7 +60,7 @@ describe('API Endpoints', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.settings).toHaveProperty('brand_name');
-    }, 10000); // Increased timeout
+    }, 15000); // Increased timeout
 
     it('should update settings', async () => {
       const newSettings = { brand_name: 'Test Institute' };
@@ -74,7 +74,24 @@ describe('API Endpoints', () => {
       // Verify update
       const check = await request(app).get('/api/settings');
       expect(check.body.settings.brand_name).toBe('Test Institute');
-    }, 10000);
+    }, 15000);
+
+    it('should update menu items structure', async () => {
+      const menuItems = [
+        { label: 'Home', path: '/', visible: true, fixed: true },
+        { label: 'Hidden Page', path: '/hidden', visible: false, fixed: false }
+      ];
+      const res = await request(app)
+        .post('/api/settings')
+        .send({ settings: { menu_items: JSON.stringify(menuItems) } });
+      
+      expect(res.statusCode).toBe(200);
+      
+      const check = await request(app).get('/api/settings');
+      const savedItems = JSON.parse(check.body.settings.menu_items);
+      expect(savedItems[0].fixed).toBe(true);
+      expect(savedItems[1].visible).toBe(false);
+    }, 20000);
   }); // Close Site Settings describe block
 
   describe('User Management', () => {

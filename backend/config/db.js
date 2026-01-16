@@ -82,10 +82,10 @@ const initDB = async () => {
       'brand_logo': '',
       'brand_display': 'both',
       'menu_items': JSON.stringify([
-        { label: 'Home', path: '/' },
-        { label: 'About', path: '/about' },
-        { label: 'Courses', path: '/courses' },
-        { label: 'Contact', path: '/contact' }
+        { label: 'Home', path: '/', visible: true, fixed: true },
+        { label: 'About', path: '/about', visible: true, fixed: true },
+        { label: 'Courses', path: '/courses', visible: true, fixed: true },
+        { label: 'Contact', path: '/contact', visible: true, fixed: true }
       ])
     };
 
